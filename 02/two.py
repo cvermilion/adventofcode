@@ -1,7 +1,7 @@
 #!/usr/bin/env python3 
 
 with open("input.txt") as f:
-        rows = f.read().splitlines()
+    rows = f.read().splitlines()
 
 nums = [[int(word) for word in row.split()] for row in rows]
 
