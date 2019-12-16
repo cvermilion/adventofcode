@@ -58,7 +58,7 @@ fn do_n(
 }
 
 fn points(steps: &Vec<Step>) -> HashMap<[isize; 2], isize> {
-    let mut pts: HashMap<[isize; 2], isize> = HashMap::new();
+    let mut pts = HashMap::new();
     let mut cur = [0, 0];
     let mut dist = 0;
     for step in steps {
@@ -85,7 +85,7 @@ fn main() {
     let points2 = points(&steps2);
 
     // part 1
-    let mut intxs: Vec<[isize; 2]> = Vec::new();
+    let mut intxs = Vec::new();
     for (&pt, &dist) in &points2 {
         if points1.contains_key(&pt) {
             intxs.push(pt);
