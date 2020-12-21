@@ -1,4 +1,3 @@
-from parse import parse
 from functools import reduce
 
 data = open("input.txt").read()
