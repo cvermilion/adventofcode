@@ -1,9 +1,8 @@
 from parse import parse
 
-data = open("input.txt").readlines()
 # Parse lines like "light red bags contain 1 bright white bag, 2 muted yellow bags."
 #  => {'light red': {'bright white': 1, 'muted yellow': 2}, ... }
-rules = [parse("{} bags contain {}.", d) for d in data]
+rules = [parse("{} bags contain {}.", d) for d in open("input.txt")]
 rules = [[r[0], r[1].split(", ")] for r in rules]
 rules = [[r[0], [parse("{:d} {} bag", rr) or parse("{:d} {} bags", rr) for rr in r[1]]] for r in rules]
 rules = [[r[0], dict((rr[1], rr[0]) for rr in r[1] if rr)] for r in rules]

@@ -1,7 +1,6 @@
 from parse import parse
 
-data = open("input.txt").readlines()
-ops = [list(parse("{} {:d}", d)) for d in data]
+ops = [list(parse("{} {:d}", d)) for d in open("input.txt")]
 def ops_copy():
     return [l[:] for l in ops]
 

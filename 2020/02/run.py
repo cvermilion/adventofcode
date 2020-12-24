@@ -1,7 +1,6 @@
 from parse import parse
 
-#data = [l for l in open("input.txt").readlines()]
-data = [parse("{:d}-{:d} {}: {}", l) for l in open("input.txt").readlines()]
+data = [parse("{:d}-{:d} {}: {}", l) for l in open("input.txt")]
 
 def check_pw_part1(pw_data):
     cnt = len(pw_data[3]) - len(pw_data[3].replace(pw_data[2], ""))

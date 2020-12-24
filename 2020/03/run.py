@@ -1,4 +1,3 @@
-from parse import parse
 from functools import reduce
 from operator import mul
 
