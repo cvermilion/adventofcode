@@ -16,14 +16,18 @@ def score(board_placement, calls):
 
 rows = [[square_ids[5*r + c] for c in range(5)] for r in range(5)]
 cols = [[square_ids[5*r + c] for r in range(5)] for c in range(5)]
+# a winning score is the product of the square ids for a row or column
 winning_scores = [functools.reduce(operator.mul, l) for l in rows + cols]
-print(winning_scores)
+
+def is_winner(s):
+    # a board's score is a winner if it's a multiple of a winning score
+    return any(s%w == 0 for w in winning_scores)
 
 winner = None
 winning_step = None
 for step in range(1, len(calls)+1):
     scores = [score(b, calls[:step]) for b in board_placements]
-    wins = [any(s%w == 0 for w in winning_scores) for s in scores]
+    wins = [is_winner(s) for s in scores]
     if any(wins):
         winner = [i for (i,w) in enumerate(wins) if w][0]
         winning_step = step
@@ -38,7 +42,7 @@ last_winner = None
 last_winning_step = None
 for step in range(1, len(calls)+1):
     scores = [score(b, calls[:step]) for b in board_placements]
-    wins = [any(s%w == 0 for w in winning_scores) for s in scores]
+    wins = [is_winner(s) for s in scores]
     if len([w for w in wins if not w]) == 1:
         last_winner = [i for (i,w) in enumerate(wins) if not w][0]
     if len([w for w in wins if not w]) == 0:
