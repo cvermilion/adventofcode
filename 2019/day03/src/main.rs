@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fs;
 
+#[derive(Copy, Clone)]
 enum Step {
     R(isize),
     U(isize),
@@ -8,33 +9,31 @@ enum Step {
     D(isize),
 }
 
-fn str_of_step(s: &Step) -> String {
-    match s {
-        Step::R(n) => format!("R{}", n),
-        Step::L(n) => format!("L{}", n),
-        Step::U(n) => format!("U{}", n),
-        Step::D(n) => format!("D{}", n),
-    }
-}
+//fn str_of_step(s: &Step) -> String {
+//    match s {
+//        Step::R(n) => format!("R{}", n),
+//        Step::L(n) => format!("L{}", n),
+//        Step::U(n) => format!("U{}", n),
+//        Step::D(n) => format!("D{}", n),
+//    }
+//}
 
-fn steps(line: String) -> Vec<Step> {
+fn steps(line: &str) -> impl Iterator<Item = Step> + '_ {
     let parts = line.split(',');
-    return parts
-        .map(|x| {
-            if x.len() < 2 {
-                return Step::R(0);
-            }
-            let first = &x[..1];
-            let num: isize = x[1..].parse().expect("bad number!");
-            match first {
-                "R" => Step::R(num),
-                "L" => Step::L(num),
-                "U" => Step::U(num),
-                "D" => Step::D(num),
-                _ => Step::R(0),
-            }
-        })
-        .collect();
+    return parts.map(|x| {
+        if x.len() < 2 {
+            return Step::R(0);
+        }
+        let first = &x[..1]; // can't index a String but you can slice it
+        let num: isize = x[1..].parse().expect("bad number!");
+        match first {
+            "R" => Step::R(num),
+            "L" => Step::L(num),
+            "U" => Step::U(num),
+            "D" => Step::D(num),
+            _ => Step::R(0),
+        }
+    });
 }
 
 fn do_n(
@@ -57,16 +56,16 @@ fn do_n(
     }
 }
 
-fn points(steps: &Vec<Step>) -> HashMap<[isize; 2], isize> {
+fn points(steps: impl Iterator<Item = Step>) -> HashMap<[isize; 2], isize> {
     let mut pts = HashMap::new();
     let mut cur = [0, 0];
     let mut dist = 0;
     for step in steps {
         match step {
-            Step::R(num) => do_n(*num, &mut dist, &mut pts, &mut (cur), 1, 0),
-            Step::L(num) => do_n(*num, &mut dist, &mut pts, &mut (cur), -1, 0),
-            Step::U(num) => do_n(*num, &mut dist, &mut pts, &mut (cur), 0, 1),
-            Step::D(num) => do_n(*num, &mut dist, &mut pts, &mut (cur), 0, -1),
+            Step::R(num) => do_n(num, &mut dist, &mut pts, &mut (cur), 1, 0),
+            Step::L(num) => do_n(num, &mut dist, &mut pts, &mut (cur), -1, 0),
+            Step::U(num) => do_n(num, &mut dist, &mut pts, &mut (cur), 0, 1),
+            Step::D(num) => do_n(num, &mut dist, &mut pts, &mut (cur), 0, -1),
         }
     }
     pts
@@ -78,15 +77,15 @@ fn main() {
     let l1 = lines[0];
     let l2 = lines[1];
 
-    let steps1 = steps(l1.to_string());
-    let steps2 = steps(l2.to_string());
+    let steps1 = steps(l1);
+    let steps2 = steps(l2);
 
-    let points1 = points(&steps1);
-    let points2 = points(&steps2);
+    let points1 = points(steps1);
+    let points2 = points(steps2);
 
     // part 1
     let mut intxs = Vec::new();
-    for (&pt, &dist) in &points2 {
+    for (&pt, _) in &points2 {
         if points1.contains_key(&pt) {
             intxs.push(pt);
         }

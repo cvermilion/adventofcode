@@ -2,8 +2,10 @@ use std::fs;
 
 fn main() {
     let contents = fs::read_to_string("input.txt").expect("couldn't read file!");
-    let digs: Vec<&str> = contents.split(',').collect();
-    let prog: Vec<usize> = digs.iter().map(|x| x.parse().expect("bad int")).collect();
+    let digs = contents.split(',');
+    let prog = digs
+        .map(|x| x.parse().expect("bad int"))
+        .collect::<Vec<_>>();
 
     // part 1
     let part1 = run(&prog, 12, 2);
