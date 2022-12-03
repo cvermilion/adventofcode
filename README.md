@@ -1,4 +1,8 @@
-# Advent of Code 2017-2019
+# Advent of Code 2017-2022
+
+2020-2022: Reverted to Pythonista on my phone; spare time while I watch the kids
+is the only time I have for this, so phone-coding works and it's a fun
+constraint.
 
 These are my solutions to the [Advent of Code](https://adventofcode.com) puzzles
 for 2017-2019. 2017 and 2018 are a mess because I've imported them directly from
