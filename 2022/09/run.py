@@ -27,7 +27,8 @@ moves = {
 	"D": -1j,
 }
 
-# T moves one of 16 ways based on distance to H, these three plus three 90 degree rotations (double diagonal can only happen in part 2)
+# T moves one of 16 ways based on distance to H, these four plus three 90 degree rotations
+# (double diagonal can only happen in part 2)
 basic = {
 	2: 1,
 	2+1j: 1+1j,
