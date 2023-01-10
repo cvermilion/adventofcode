@@ -4,8 +4,10 @@ from collections import namedtuple
 from queue import PriorityQueue
 from time import time
 import math
+import operator
+import functools
 
-input = open("input_test.py").read()
+input = open("input.py").read()
 
 class Blueprint (object):
 	def __init__(self, ore_cost, clay_cost, obs_ore_cost, obs_clay_cost, geo_ore_cost, geo_obs_cost):
@@ -16,41 +18,16 @@ class Blueprint (object):
 		self.geo_ore_cost = geo_ore_cost
 		self.geo_obs_cost = geo_obs_cost
 
-class StateOld(object):
-	def __init__(self):
-		self.ore = 0
-		self.clay = 0
-		self.obsidian = 0
-		self.geode = 0
-		self.ore_bot = 1
-		self.clay_bot = 0
-		self.obs_bot = 0
-		self.geo_bot = 0
-	
-	def __str__(self):
-		return "O/C/O/G: {}/{}/{}/{} -- Bots: {}/{}/{}/{}".format(self.ore, self.clay, self.obsidian, self.geode, self.ore_bot, self.clay_bot, self.obs_bot, self.geo_bot)
-	
-	def __repr__(self):
-		return str(self)
-	
-	def __hash__(self):
-		return hash(self.tuple())
-	
-	def __eq__(self, s):
-		return self.tuple() == s.tuple()
-		
-	def tuple(self):
-		return (self.ore, self.clay, self.obsidian, self.geode, self.ore_bot, self.clay_bot, self.obs_bot, self.geo_bot)
-	
-	def better(self, s2):
-		# s2 is better
-		t1, t2 = self.tuple(), s2.tuple()
-		return all(a<=b for (a,b) in zip(t1, t2))
-
 State = namedtuple("State", "ore clay obsidian geode ore_bot clay_bot obs_bot geo_bot")
 
 def new_state():
 	return State(0,0,0,0,1,0,0,0)
+
+def state_hash(s):
+	return s.ore | s.ore_bot << 8 | s.clay << 16 | s.clay_bot << 24 | s.obsidian << 32 | s.obs_bot << 40 | s.geode << 48 | s.geo_bot << 56
+
+def better_hash(h1, h2):
+	return all(b1 <= b2 for (b1, b2) in zip(h1.to_bytes(8, "little"), h2.to_bytes(8, "little")))
 
 def better(s1, s2):
 		# s2 is better
@@ -77,52 +54,6 @@ def parse_line(l):
 
 blueprints = [parse_line(l) for l in input.splitlines() if l]
 
-def incr_old(s):
-	s2 = copy(s)
-	s2.ore = s.ore + s.ore_bot
-	s2.clay = s.clay + s.clay_bot
-	s2.obsidian = s.obsidian + s.obs_bot
-	s2.geode = s.geode + s.geo_bot
-	return s2
-	
-def next_states_old(s, b):
-	ss = []
-	# just sit
-	s2 = incr(s)
-	ss.append(s2)
-	
-	# ore bot
-	if s.ore >= b.ore_cost:
-		s3 = copy(s2)
-		s3.ore -= b.ore_cost
-		s3.ore_bot += 1
-		ss.append(s3)
-	
-	# clay bot
-	if s.ore >= b.clay_cost:
-		s3 = copy(s2)
-		s3.ore -= b.clay_cost
-		s3.clay_bot += 1
-		ss.append(s3)
-	
-	# obsidian bot
-	if s.ore >= b.obs_ore_cost and s.clay >= b.obs_clay_cost:
-		s3 = copy(s2)
-		s3.ore -= b.obs_ore_cost
-		s3.clay -= b.obs_clay_cost
-		s3.obs_bot += 1
-		ss.append(s3)
-	
-	# geode bot
-	if s.ore >= b.geo_ore_cost and s.obsidian >= b.geo_obs_cost:
-		s3 = copy(s2)
-		s3.ore -= b.geo_ore_cost
-		s3.obsidian -= b.geo_obs_cost
-		s3.geo_bot += 1
-		ss.append(s3)
-	
-	return ss
-
 def incr(s):
 	return s._replace(
 		ore=s.ore+s.ore_bot,
@@ -137,8 +68,8 @@ def next_states(s, b):
 	s2 = incr(s)
 	ss.append(s2)
 	
-	# ore bot
-	if s.ore >= b.ore_cost:
+    # ore bot: include if we have enough ore, unless we already build enough ore every turn to build any bot
+	if s.ore >= b.ore_cost and not s.ore_bot >= max(b.ore_cost, b.clay_cost, b.obs_ore_cost, b.geo_ore_cost):
 		s3 = s2._replace(
 			ore=s2.ore-b.ore_cost,
 			ore_bot=s2.ore_bot+1
@@ -146,7 +77,7 @@ def next_states(s, b):
 		ss.append(s3)
 	
 	# clay bot
-	if s.ore >= b.clay_cost:
+	if s.ore >= b.clay_cost and not s.clay_bot >= b.obs_clay_cost:
 		s3 = s2._replace(
 			ore=s2.ore-b.clay_cost,
 			clay_bot=s2.clay_bot+1
@@ -154,7 +85,7 @@ def next_states(s, b):
 		ss.append(s3)
 	
 	# obsidian bot
-	if s.ore >= b.obs_ore_cost and s.clay >= b.obs_clay_cost:
+	if s.ore >= b.obs_ore_cost and s.clay >= b.obs_clay_cost and not s.obs_bot >= b.geo_obs_cost:
 		s3 = s2._replace(
 			ore=s2.ore-b.obs_ore_cost,
 			clay=s2.clay-b.obs_clay_cost,
@@ -176,109 +107,137 @@ def next_states(s, b):
 def score(s, b):
 	# (g', g'', g''')  packed as g' << 16 + g'' << 8 + g'''
 	gdot = s.geo_bot
-	gdotdot = min(s.ore_bot/b.geo_ore_cost, s.obs_bot/b.geo_obs_cost)
-	# approx: only include the b'' term in g'''
-	gdotdotdot = min(s.ore_bot/b.obs_ore_cost, s.clay_bot/b.obs_clay_cost)
+	gdotdot = min(1, s.ore_bot/b.geo_ore_cost, s.obs_bot/b.geo_obs_cost)
+	gdotdotdot = min(
+		min(1, s.ore_bot/b.obs_ore_cost)/b.geo_obs_cost,
+		min(1, s.clay_bot/b.obs_clay_cost)/b.geo_obs_cost,
+		min(1, s.ore_bot/b.ore_cost)/b.geo_ore_cost
+	)
 	return -1 * (gdot * (1<<16) + gdotdot * (1<<8) + gdotdotdot)
 
-def score_dumb(s, b, t):
-	# roughly, g' * trem + (1/2)g'' * trem^2 + (1/6)g''' * trem^3
-	gdot = s.geo_bot
-	gdotdot = min(s.ore_bot/b.geo_ore_cost, s.obs_bot/b.geo_obs_cost)
-	# approx: only include the b'' term in g'''
-	gdotdotdot = min(s.ore_bot/b.obs_ore_cost, s.clay_bot/b.obs_clay_cost)
-	trem = 24 - t
-	return -1 * ((gdot * trem) + (gdotdot * .5 * trem**2)  + (gdotdotdot * trem**3 / 6))
+def score2(s, b):
+	# (g', g'', g''')  packed as g' << 16 + g'' << 8 + g'''
+	# count progress toward bots
+	# but this has worse perf for some reason?
+	gp = s.geo_bot + min(1, s.ore/b.geo_ore_cost, s.obsidian/b.geo_obs_cost)
+	op = s.ore_bot + min(1, s.ore/b.ore_cost)
+	bp = s.obs_bot + min(1, s.ore/b.obs_ore_cost, s.clay/b.obs_clay_cost)
+	cp = s.clay_bot + min(1, s.ore/b.clay_cost)
+	
+	gdot = gp
+	gdotdot = min(1, op/b.geo_ore_cost, bp/b.geo_obs_cost)
+	gdotdotdot = min(
+		min(1, op/b.obs_ore_cost)/b.geo_obs_cost,
+		min(1, cp/b.obs_clay_cost)/b.geo_obs_cost,
+		min(1, op/b.ore_cost)/b.geo_ore_cost
+		)
+	return -1 * (gdot * (1<<16) + gdotdot * (1<<8) + gdotdotdot)
 
-def constraints(max_geo, bp):
-	tg = math.floor(24.5 - .5 * math.sqrt(1+8*max_geo))
+def constraints(tmax, max_geo, bp):
+	tg = math.floor(tmax + .5 - .5 * math.sqrt(1+8*max_geo))
 	tb = math.floor(tg - .5 - .5 * math.sqrt(1+8*bp.geo_obs_cost))
 	tc = math.floor(tb - .5 - .5 * math.sqrt(1+8*bp.obs_clay_cost))
 	return tg, tb, tc
+
+def max_possible_geode(dt, s):
+	# make sure to count the final increment
+	return s.geode + s.geo_bot*(dt+1) + .5*dt*(dt+1)
+
+def max_possible_obs(dt, s):
+	return s.obsidian + s.obs_bot*dt + .5*dt*(dt+1)
+
+def max_possible_clay(dt, s):
+	return s.clay + s.clay_bot*dt + 5*dt*(dt+1)
+
+
+def max_geo(tmax, bp, do_recurse=False, verbose=False):
+	if tmax <= 1:
+		return new_state()
 	
-bp = blueprints[1]
-
-start = new_state()
-states = PriorityQueue()
-
-t,s = 0, start
-states.put((t, score(s, bp), s))
-state_sets = dict((i,set()) for i in range(25))
-state_sets[t].add(s)
-
-max_geo = 0
-tg, tb, tc = constraints(0, bp)
-
-i = 0
-t1 = time()
-while not states.empty(): # and i < 1000000:
-	i += 1
-	negt, _, s = states.get()
-	t = -negt + 1
-	if i % 10000 == 0:
-		print("checking", i, state_str(s))
-	if t == 24:
-		s = incr(s) # final harvest
-		if s.geode > max_geo:
-			max_geo = s.geode
-			tg, tb, tc = constraints(max_geo, bp)
-			print("new best:", state_str(s), tg,tb,tc)
-			if max_geo == 9:
-				t2 = time()
-				print("time", t2-t1)
-				#break
-		continue
-		
-	# check some cases where we can rule this state out
-	# bp0: 20,15,10
-	# bp1: 20,14,9
-	if s.geo_bot == 0 and t > tg:
-		continue
-	if s.obs_bot == 0 and t > tb:
-		continue
-	if s.clay_bot == 0 and t > tc:
-		continue
-	
-	nn = next_states(s, bp)
-	checked = state_sets[t]
-	for n in nn:
-		#if not(n in checked or any(better(n, s2) for s2 in checked)):
-		if not n in checked:
-			#print("adding {:.2f}: {}".format(score(n, blueprints[0], t+1), state_str(n)))
-			states.put((-t, score(n, bp), n))
-			checked.add(n)
-	#print()
-
-"""
-for i in range(24):
 	t1 = time()
-	nxt = set()
-	for s in states:
-		nxtnxt = nxt.union(next_states(s, blueprints[0]))
-		#nxt = set(filter(lambda s: not any(s is not s2 and better(s, s2) for s2 in nxtnxt), nxtnxt))
-		nxt = nxtnxt
-	t2 = time()
-	print("finding next:", t2-t1)
 	
-	nxts = sorted(nxt)
-	nxt = []
-	for j,s in enumerate(nxts):
-		if not any(s != s2 and better(s, s2) for s2 in nxts[j:]):
-			nxt.append(s)
+	# use one-step shorter solution as a lower bound
+	best = new_state()
+	if do_recurse:
+		best_prev = max_geo(tmax-1, bp, do_recurse, verbose)
+		nxt = next_states(best_prev, bp)
+		best = nxt.pop()
+		for n in nxt:
+			if n.geode > best.geode:
+				best = n
+	
+		print()
+		print("tmax:", tmax)
+		print("best for", tmax-1, best.geode)
 		
-	#states = list(filter(lambda s: not any(s is not s2 and better(s, s2) for s2 in nxt), nxt))
-	states = nxt
+	start = new_state()
+	states = PriorityQueue()
+	
+	t,s = 0, start
+	states.put((t, score(s, bp), s))
+	state_sets = dict((i,set()) for i in range(tmax+1))
+	state_sets[t].add(s)
+	
+	tg, tb, tc = constraints(tmax, best.geode, bp)
+	
+	i = 0
+	while not states.empty():
+		i += 1
+		negt, _, s = states.get()
+		t = -negt + 1
+		if verbose and i % 100000 == 0:
+			print("checking {} ({},{}) {}".format(i, tmax, best.geode, state_str(s)))
+		if t == tmax:
+			s = incr(s) # final harvest
+			if (s.geode > best.geode) or (s.geode == best.geode and s.geo_bot > best.geo_bot):
+				best = s
+				tg, tb, tc = constraints(tmax, best.geode, bp)
+				if verbose:
+					print("new best:", state_str(s), tg,tb,tc)
+			continue
+			
+		# check some cases where we can rule this state out
+		if t >= tg and max_possible_geode(tmax-t, s) < best.geode:
+			# assuming we could build geo bots every minute could we beat the best
+			continue
+		if t >= tb and s.geo_bot == 0 and max_possible_obs(tg-t, s) < bp.geo_obs_cost:
+			# if no geode bots, so we have time to build enough obsidian to switch to geode bots by tg
+			continue
+		if s.obs_bot == 0 and t >= tc and max_possible_clay(tb-t, s) < bp.obs_clay_cost:
+			continue
+		
+		nn = next_states(s, bp)
+		checked = state_sets[t]
+		for n in nn:
+			if not n in checked:
+				states.put((-t, score(n, bp), n))
+				checked.add(n)
 	
 	t3 = time()
-	print("filtering:", t3-t2)
+	if verbose:
+		print("full time", t3-t1)
+	return best
+
+
+# Part 1
+t1 = time()
+
+quality_nums = []
+for (ii, bp) in enumerate(blueprints):
+	id = ii+1
+	quality_nums.append(max_geo(24, bp).geode * id)
+	
+print("Part 1:", sum(quality_nums))
+
+max_geodes = []
+for (id, bp) in enumerate(blueprints[:3]):
 	print()
-	print("step", i, len(states), "states")
-	#for s in states:
-	#	print(state_str(s))
-"""
+	print("BP", id, "******")
+	print()
 
-print(max_geo)
-t3 = time()
-print("full time", t3-t1)
+	max_geodes.append(max_geo(32, bp, do_recurse=True, verbose=True).geode)
+	
+print("Part 2:", functools.reduce(operator.mul, max_geodes))
 
-#print(max(s.geode for s in states))
+t2 = time()
+print("Total time:", t2-t1)
