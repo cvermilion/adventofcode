@@ -68,8 +68,8 @@ def next_states(s, b):
 	s2 = incr(s)
 	ss.append(s2)
 	
-	# ore bot
-	if s.ore >= b.ore_cost:
+    # ore bot: include if we have enough ore, unless we already build enough ore every turn to build any bot
+	if s.ore >= b.ore_cost and not s.ore_bot >= max(b.ore_cost, b.clay_cost, b.obs_ore_cost, b.geo_ore_cost):
 		s3 = s2._replace(
 			ore=s2.ore-b.ore_cost,
 			ore_bot=s2.ore_bot+1
@@ -77,7 +77,7 @@ def next_states(s, b):
 		ss.append(s3)
 	
 	# clay bot
-	if s.ore >= b.clay_cost:
+	if s.ore >= b.clay_cost and not s.clay_bot >= b.obs_clay_cost:
 		s3 = s2._replace(
 			ore=s2.ore-b.clay_cost,
 			clay_bot=s2.clay_bot+1
@@ -85,7 +85,7 @@ def next_states(s, b):
 		ss.append(s3)
 	
 	# obsidian bot
-	if s.ore >= b.obs_ore_cost and s.clay >= b.obs_clay_cost:
+	if s.ore >= b.obs_ore_cost and s.clay >= b.obs_clay_cost and not s.obs_bot >= b.geo_obs_cost:
 		s3 = s2._replace(
 			ore=s2.ore-b.obs_ore_cost,
 			clay=s2.clay-b.obs_clay_cost,
