@@ -1,28 +1,14 @@
-test_input = """1000
-2000
-3000
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 
-4000
-
-5000
-6000
-
-7000
-8000
-9000
-
-10000"""
-
-input=test_input
-
-input = open("input.py").read()
+#test()
+input = get_input()
 
 elves = input.split("\n\n")
 cals = [[int(c) for c in e.splitlines()] for e in elves]
 
 totals = [sum(cs) for cs in cals]
 
-print(max(totals))
-
-ordered = list(reversed(sorted(totals)))
-print(sum(ordered[:3]))
+print("Part 1:", max(totals))
+print("Part 2:", sum(sorted(totals, reverse=True)[:3]))
