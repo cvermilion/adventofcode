@@ -1,5 +1,9 @@
-#input = open("input_test.py").read()
-input = open("input.py").read()
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
+
+#test()
+input = get_input()
 
 # model two instructions as int or None
 
@@ -35,7 +39,8 @@ for instr in instrs:
 		draw()
 		x += instr
 
-print(strength)
+print("Part 1:", strength)
 
+print("Part 2:")
 for row in screen:
 	print("".join(row))
