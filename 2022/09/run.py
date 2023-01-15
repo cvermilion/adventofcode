@@ -1,23 +1,10 @@
-input_test = """R 4
-U 4
-L 3
-D 1
-R 4
-D 1
-L 5
-R 2"""
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 
-input_test2 = """R 5
-U 8
-L 8
-D 3
-R 17
-D 10
-L 25
-U 20"""
-
-#input = input_test2
-input = open("input.py").read()
+#test()
+#test2()
+input = get_input()
 
 # Naturally, Planck length distances in a plane should be represented by complex numbers. 
 moves = {
@@ -50,9 +37,7 @@ for (dir, n) in h_steps:
 			T += follows[H-T]
 			visited.add(T)
 
-print(len(visited))
-
-# part 2
+print("Part 1:", len(visited))
 
 rope = [0j] * 10
 visited = {0j}
@@ -69,4 +54,4 @@ for (dir, n) in h_steps:
 				if i == 9:
 					visited.add(new)
 
-print(len(visited))
+print("Part 2:", len(visited))
