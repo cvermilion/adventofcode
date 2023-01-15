@@ -1,6 +1,10 @@
-input_test = """A Y
-B X
-C Z"""
+
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
+
+#test()
+input = get_input()
 
 ROCK = 1
 PAPER = 2
@@ -21,19 +25,15 @@ scores = {
 	(SCISSORS, SCISSORS): 3
 	}
 
-#input = input_test.splitlines()
+moves = [(left[l], right[r]) for (l,r) in [line.split() for line in input.splitlines()]]
 
-input = open("input.py").readlines()
-
-moves = [(left[l], right[r]) for (l,r) in [line.split() for line in input]]
-
-print(sum(scores[m]+m[1] for m in moves))
+print("Part 1:", sum(scores[m]+m[1] for m in moves))
 
 better = {ROCK: PAPER, PAPER: SCISSORS, SCISSORS: ROCK}
 worse = dict((v,k) for (k,v) in better.items())
 draw = dict((x,x) for x in better)
 
 right = {'X': worse, 'Y': draw, 'Z': better}
-moves = [(left[l], right[r][left[l]])  for (l,r) in [line.split() for line in input]]
+moves = [(left[l], right[r][left[l]])  for (l,r) in [line.split() for line in input.splitlines()]]
 
-print(sum(scores[m]+m[1] for m in moves))
+print("Part 2:", sum(scores[m]+m[1] for m in moves))

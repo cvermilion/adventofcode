@@ -1,5 +1,4 @@
-x = 123
-
+# NB: Pythonista forces a .py extension so the input files end in .py...
 input_test = open("input_test.py").read().strip()
 input = open("input.py").read().strip()
 
