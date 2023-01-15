@@ -1,7 +1,9 @@
-import itertools, functools
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 
-#input = open("input_test.py").read()
-input = open("input.py").read()
+#test()
+input = get_input()
 
 def cmp(x, y):
 	if isinstance(x, int):
@@ -11,7 +13,7 @@ def cmp(x, y):
 			return cmp([x], y)
 	if isinstance(y, int):
 		return cmp(x, [y])
-	for (xx,yy) in itertools.zip_longest(x,y,fillvalue=None):
+	for (xx,yy) in zip_longest(x,y,fillvalue=None):
 		if xx is None:
 			return -1
 		if yy is None:
@@ -25,12 +27,12 @@ def cmp(x, y):
 pairs = input.split("\n\n")
 msgs = [[eval(a),eval(b)] for (a,b) in [p.splitlines() for p in pairs]]
 
-print(sum([i+1 for (i,(a,b)) in enumerate(msgs) if cmp(a,b) != 1]))
+print("Part 1:", sum([i+1 for (i,(a,b)) in enumerate(msgs) if cmp(a,b) != 1]))
 
 sentinel1 = [[2]]
 sentinel2 = [[6]]
 lines = sum(msgs, []) + [sentinel1, sentinel2]
 
-out = sorted(lines, key=functools.cmp_to_key(cmp))
+out = sorted(lines, key=cmp_to_key(cmp))
 
-print((out.index(sentinel1)+1)*(out.index(sentinel2)+1))
+print("Part 2:", (out.index(sentinel1)+1)*(out.index(sentinel2)+1))
