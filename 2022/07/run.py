@@ -1,4 +1,9 @@
-input = open("input.py").read()
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
+
+#test()
+input = get_input()
 
 steps = [s.splitlines() for s in input.split("$") if s != ""]
 steps = [[l.strip() for l in step] for step in steps]
@@ -51,6 +56,6 @@ def totals(dir):
 	
 	return my_total, big_total
 
-print(totals(fs)[1])
+print("Part 1:", totals(fs)[1])
 
-print(to_delete)
+print("Part 2:", to_delete)
