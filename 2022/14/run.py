@@ -1,10 +1,9 @@
-import sys
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 
-input_test = """498,4 -> 498,6 -> 496,6
-503,4 -> 502,4 -> 502,9 -> 494,9"""
-
-input = input_test
-input = open("input.py").read()
+#test()
+input = get_input()
 
 pairs = []
 all_pts = []
@@ -72,9 +71,8 @@ def fill_next(i,j):
 while fill_next(500, 0):
 	pass
 
-print("Part 1", len(sand))
+print("Part 1:", len(sand))
 
-# Part 2
 sand = set()
 # floor, too lazy to work out exact bounda
 floorj = maxj + 2
@@ -84,5 +82,5 @@ for i in range(mini - maxj - 10, maxi + maxj + 10):
 while ((500, 0) not in sand) and fill_next(500, 0):
 	pass
 
-print("Part 2", len(sand))
+print("Part 2:", len(sand))
 
