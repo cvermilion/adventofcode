@@ -1,16 +1,17 @@
-input_test = """30373
-25512
-65332
-33549
-35390"""
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 
-#input = input_test
-input = open("input.py").read()
+#test()
+input = get_input()
 
 grid = [[int(c) for c in line.strip()] for line in input.splitlines()]
 N = len(grid)
 
-paths = [[(i,j) for i in range(0,N)] for j in range(0,N)] + [[(i,j) for i in range(N-1,-1,-1)] for j in range(0,N)] + [[(i,j) for j in range(0,N)] for i in range(0,N)] + [[(i,j) for j in range(N-1,-1,-1)] for i in range(0,N)]
+paths = ([[(i,j) for i in range(0,N)] for j in range(0,N)] +
+         [[(i,j) for i in range(N-1,-1,-1)] for j in range(0,N)] +
+		 [[(i,j) for j in range(0,N)] for i in range(0,N)] +
+		 [[(i,j) for j in range(N-1,-1,-1)] for i in range(0,N)])
 
 seen = set()
 
@@ -26,9 +27,7 @@ for p in paths:
 			seen.add(pt)
 			tallest = v
 
-print(len(seen))
-
-# part 2
+print("Part 1:", len(seen))
 
 def paths(pt):
 	# all sightlines from pt
@@ -52,5 +51,5 @@ def score(pt):
 		tot *= n
 	return tot
 
-print(max(sum([[score((i,j)) for j in range(N)] for i in range(N)], [])))
+print("Part 2:", max(sum([[score((i,j)) for j in range(N)] for i in range(N)], [])))
 		
