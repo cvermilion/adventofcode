@@ -1,17 +1,9 @@
-input_test = """    [D]    
-[N] [C]    
-[Z] [M] [P]
- 1   2   3 
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 
-move 1 from 2 to 1
-move 3 from 1 to 3
-move 2 from 2 to 1
-move 1 from 1 to 2"""
-
-from parse import parse
-
-#input = input_test
-input = open("input.py").read()
+#test()
+input = get_input()
 
 stack, moves = input.split("\n\n")
 
@@ -34,7 +26,7 @@ for (count, frm, to) in moves:
 		c = stacks[frm-1].pop()
 		stacks[to-1].append(c)
 
-print("".join(s[-1] for s in stacks))
+print("Part 1:", "".join(s[-1] for s in stacks))
 
 # reset for part 2
 stacks = [[c for c in col if c != " "] for col in cols]
@@ -43,4 +35,4 @@ for (count, frm, to) in moves:
 	stacks[frm-1], mv = stacks[frm-1][:-count], stacks[frm-1][-count:]
 	stacks[to-1] += mv
 
-print("".join(s[-1] for s in stacks))
+print("Part 2:", "".join(s[-1] for s in stacks))
