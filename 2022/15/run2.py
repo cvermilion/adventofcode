@@ -1,10 +1,16 @@
-from parse import parse
-import math
-import time
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
+
+#test()
+input = get_input()
+
+if "--test" in sys.argv:
+	row = 10
+else:
+	row = 2000000
 
 t1 = time.time()
-
-input = open("input.py").read()
 
 def parse_line(l):
 	# Sensor at x=2, y=18: closest beacon is at x=-2, y=15
@@ -98,7 +104,7 @@ legal = list(filter(check, candidates))
 assert(len(legal) == 1)
 
 x,y = legal[0]
-print("Part 2:", 4000000*x + y)
+print("Part 2:", int(4000000*x + y))
 
 t2 = time.time()
-print("time:", t2-t1)
+#print("time:", t2-t1)

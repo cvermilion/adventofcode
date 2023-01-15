@@ -3,6 +3,9 @@ from parse import parse
 from functools import *
 from itertools import *
 import operator
+import math
+import time
+
 
 # NB: Pythonista forces a .py extension so the input files end in .py...
 input = open("input.py").read().strip("\n")
