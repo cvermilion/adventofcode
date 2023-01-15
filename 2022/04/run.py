@@ -1,16 +1,11 @@
-input_text = """2-4,6-8
-2-3,4-5
-5-7,7-9
-2-8,3-7
-6-6,4-6
-2-6,4-8"""
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 
-#input = input_text.splitlines()
-input = open("input.py").readlines()
+#test()
+input = get_input()
 
-from parse import parse
-
-pairs = [((r[0],r[1]),(r[2],r[3])) for r in [parse("{:d}-{:d},{:d}-{:d}", l) for l in input]]
+pairs = [((r[0],r[1]),(r[2],r[3])) for r in [parse("{:d}-{:d},{:d}-{:d}", l) for l in input.splitlines()]]
 
 def covers(pair):
 	# right covers left
@@ -21,10 +16,10 @@ def covers_either(pair):
 	(pp1, pp2) = pair
 	return covers((pp1, pp2)) or covers((pp2, pp1))
 
-print(len(list(filter(covers_either, pairs))))
+print("Part 1:", len(list(filter(covers_either, pairs))))
 
 def overlaps(pair):
 	(p1, p2),(p3, p4) = pair
 	return (p1 >= p3 and p1 <= p4) or (p2 >= p3 and p2 <= p4) or covers_either(pair)
 	
-print(len(list(filter(overlaps, pairs))))
+print("Part 2:", len(list(filter(overlaps, pairs))))
