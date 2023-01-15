@@ -1,9 +1,9 @@
-from parse import parse
-from functools import reduce
-from operator import mul
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 
-#input = open("input_test.py").read()
-input = open("input.py").read()
+#test()
+input = get_input()
 
 def parse_op(op_a, op, op_b):
 	f = (lambda x,y: x+y) if op == "+" else (lambda x,y: x*y)
@@ -38,7 +38,7 @@ def parse_monkey(s):
 
 monkeys = [parse_monkey(s) for s in input.split("\n\n")]
 
-prod = reduce(mul, (m["div"] for m in monkeys), 1)
+prod = reduce(operator.mul, (m["div"] for m in monkeys), 1)
 
 def step(part1):
 	for monkey in monkeys:
@@ -63,8 +63,6 @@ for i in range(20):
 
 counts = sorted(m["count"] for m in monkeys)
 print("Part 1:", counts[-1] * counts[-2])
-
-# Part 2
 
 monkeys = [parse_monkey(s) for s in input.split("\n\n")]
 
