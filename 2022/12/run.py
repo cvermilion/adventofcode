@@ -1,14 +1,11 @@
-input_test = """Sabqponm
-abcryxxl
-accszExk
-acctuvwj
-abdefghi"""
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 
-input = input_test
+#test()
+input = get_input()
 
-input = open("input.py").read()
-
-grid = [[{"S": -1, "E": 42}.get(c, ord(c)-96) for c in l] for l in input.strip().split("\n")]
+grid = [[{"S": -1, "E": 42}.get(c, ord(c)-96) for c in l] for l in input.split("\n")]
 
 def rep_grid(g):
     return "\n".join("".join(chr(n+96) if n <= 26 else "#" for n in row) for row in g)
