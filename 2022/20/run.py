@@ -1,13 +1,9 @@
-input_test = """1
-2
--3
-3
--2
-0
-4"""
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 
-input = input_test
-input = open("input.py").read()
+#test()
+input = get_input()
 
 class Node (object):
 	def __init__(self, n):
@@ -80,11 +76,9 @@ def result(zero):
 
 nodes, zero = init_nodes(1)
 run(1)
-print(result(zero))
-
-# part 2
+print("Part 1:", result(zero))
 
 key = 811589153
 nodes, zero = init_nodes(key)
 run(10)
-print(result(zero))
+print("Part 2:", result(zero))
