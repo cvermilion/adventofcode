@@ -1,21 +1,9 @@
-input_test = """root: pppw + sjmn
-dbpl: 5
-cczh: sllz + lgvd
-zczc: 2
-ptdq: humn - dvpt
-dvpt: 3
-lfqf: 4
-humn: 5
-ljgn: 2
-sjmn: drzm * dbpl
-sllz: 4
-pppw: cczh / lfqf
-lgvd: ljgn * ptdq
-drzm: hmdt - zczc
-hmdt: 32"""
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 
-input = input_test
-input = open("input.py").read()
+#test()
+input = get_input()
 
 def parse_line(l):
 	dest, rest = l.split(":")
@@ -41,8 +29,6 @@ while remaining:
 	remaining = nxt
 
 print("Part 1:", int(known["root"]))
-
-# part 2
 
 known = dict((dest,val) for (dest,val) in monkeys if isinstance(val, int) and dest != "humn")
 to_solve = [(dest,val) for (dest,val) in monkeys if not isinstance(val, int)]
