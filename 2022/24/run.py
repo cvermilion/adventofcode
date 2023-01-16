@@ -1,14 +1,10 @@
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 from queue import PriorityQueue
 
-input_test = """#.######
-#>>.<^<#
-#.<..<<#
-#>v.><>#
-#<^v^^>#
-######.#"""
-
-input = input_test
-input = open("input.py").read()
+#test()
+input = get_input()
 
 chars = [list(row) for row in input.splitlines()]
 W = len(chars[0])-2
@@ -103,8 +99,6 @@ best = best_time(1, (0,0), corner) + 1
 	
 print("Part 1:", best)
 
-# part 2
-
 # first wait for (W-1,H-1) to be empty
 t = best+1
 return_t = None
@@ -119,7 +113,6 @@ while not return_t:
 		# got stuck, try going in later
 		t += 1
 	
-
 t = return_t + 1
 final_t = None
 while not final_t:
