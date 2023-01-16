@@ -1,21 +1,10 @@
-input_test = """....#..
-..###.#
-#...#.#
-.#...##
-#.###..
-##.#.##
-.#..#.."""
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 
-input_test2 = """.....
-..##.
-..#..
-.....
-..##.
-....."""
-
-input = input_test
-
-input = open("input.py").read()
+#test()
+#test2()
+input = get_input()
 
 grid = [list(l) for l in input.strip().split("\n")]
 
@@ -118,8 +107,6 @@ while i < 10:
 	
 	i+=1
 	step(grid, dirs)
-	print(i)
-
 	dirs = dirs[1:] + [dirs[0]]
 
 print("Part 1:", size_enclosed(grid)-n_elves)
@@ -127,14 +114,13 @@ print("Part 1:", size_enclosed(grid)-n_elves)
 # 10 steps done, i=10
 
 if needs_padding(grid):
-		grid = padded(1, ".", grid)
+	grid = padded(1, ".", grid)
 
 while step(grid, dirs):
 	if needs_padding(grid):
 		grid = padded(1, ".", grid)
 	
 	i+=1
-	print(i)
 	dirs = dirs[1:] + [dirs[0]]
 
 # Add one to i because the while check that failed did a step
