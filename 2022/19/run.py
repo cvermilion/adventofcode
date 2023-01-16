@@ -1,13 +1,14 @@
-from parse import parse
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 from copy import copy
 from collections import namedtuple
 from queue import PriorityQueue
-from time import time
-import math
-import operator
-import functools
 
-input = open("input.py").read()
+#test()
+input = get_input()
+
+verbose = "--verbose" in sys.argv
 
 class Blueprint (object):
 	def __init__(self, ore_cost, clay_cost, obs_ore_cost, obs_clay_cost, geo_ore_cost, geo_obs_cost):
@@ -23,28 +24,7 @@ State = namedtuple("State", "ore clay obsidian geode ore_bot clay_bot obs_bot ge
 def new_state():
 	return State(0,0,0,0,1,0,0,0)
 
-def state_hash(s):
-	return s.ore | s.ore_bot << 8 | s.clay << 16 | s.clay_bot << 24 | s.obsidian << 32 | s.obs_bot << 40 | s.geode << 48 | s.geo_bot << 56
-
-def better_hash(h1, h2):
-	return all(b1 <= b2 for (b1, b2) in zip(h1.to_bytes(8, "little"), h2.to_bytes(8, "little")))
-
-def better(s1, s2):
-		# s2 is better
-		#return all(a<=b for (a,b) in zip(s1, s2))
-		return (
-			s1[0] <= s2[0] and
-			s1[4] <= s2[4] and
-			s1[1] <= s2[1] and
-			s1[5] <= s2[5] and
-			s1[2] <= s2[2] and
-			s1[6] <= s2[6] and
-			s1[3] <= s2[3] and
-			s1[7] <= s2[7]
-		)
-
 def state_str(s):
-		#return "O/C/O/G: {}/{}/{}/{} -- Bots: {}/{}/{}/{}".format(s.ore, s.clay, s.obsidian, s.geode, s.ore_bot, s.clay_bot, s.obs_bot, s.geo_bot)
 		return "{}/{}/{}/{}:{}/{}/{}/{}".format(s.ore, s.clay, s.obsidian, s.geode, s.ore_bot, s.clay_bot, s.obs_bot, s.geo_bot)
 
 def parse_line(l):
@@ -68,8 +48,9 @@ def next_states(s, b):
 	s2 = incr(s)
 	ss.append(s2)
 	
-    # ore bot: include if we have enough ore, unless we already build enough ore every turn to build any bot
-	if s.ore >= b.ore_cost and not s.ore_bot >= max(b.ore_cost, b.clay_cost, b.obs_ore_cost, b.geo_ore_cost):
+	# ore bot
+	if s.ore >= b.ore_cost and s.ore_bot < max(b.ore_cost, b.clay_cost, b.obs_ore_cost):
+		# don't bother building an ore bot if we already build enough ore every turn to build any other bot
 		s3 = s2._replace(
 			ore=s2.ore-b.ore_cost,
 			ore_bot=s2.ore_bot+1
@@ -77,7 +58,7 @@ def next_states(s, b):
 		ss.append(s3)
 	
 	# clay bot
-	if s.ore >= b.clay_cost and not s.clay_bot >= b.obs_clay_cost:
+	if s.ore >= b.clay_cost and s.clay_bot < b.obs_clay_cost:
 		s3 = s2._replace(
 			ore=s2.ore-b.clay_cost,
 			clay_bot=s2.clay_bot+1
@@ -85,7 +66,7 @@ def next_states(s, b):
 		ss.append(s3)
 	
 	# obsidian bot
-	if s.ore >= b.obs_ore_cost and s.clay >= b.obs_clay_cost and not s.obs_bot >= b.geo_obs_cost:
+	if s.ore >= b.obs_ore_cost and s.clay >= b.obs_clay_cost and s.obs_bot < b.geo_obs_cost:
 		s3 = s2._replace(
 			ore=s2.ore-b.obs_ore_cost,
 			clay=s2.clay-b.obs_clay_cost,
@@ -154,7 +135,7 @@ def max_geo(tmax, bp, do_recurse=False, verbose=False):
 	if tmax <= 1:
 		return new_state()
 	
-	t1 = time()
+	t1 = time.time()
 	
 	# use one-step shorter solution as a lower bound
 	best = new_state()
@@ -166,9 +147,10 @@ def max_geo(tmax, bp, do_recurse=False, verbose=False):
 			if n.geode > best.geode:
 				best = n
 	
-		print()
-		print("tmax:", tmax)
-		print("best for", tmax-1, best.geode)
+		if verbose:
+			print()
+			print("tmax:", tmax)
+			print("best for", tmax-1, best.geode)
 		
 	start = new_state()
 	states = PriorityQueue()
@@ -213,14 +195,14 @@ def max_geo(tmax, bp, do_recurse=False, verbose=False):
 				states.put((-t, score(n, bp), n))
 				checked.add(n)
 	
-	t3 = time()
+	t3 = time.time()
 	if verbose:
 		print("full time", t3-t1)
 	return best
 
 
 # Part 1
-t1 = time()
+t1 = time.time()
 
 quality_nums = []
 for (ii, bp) in enumerate(blueprints):
@@ -231,13 +213,16 @@ print("Part 1:", sum(quality_nums))
 
 max_geodes = []
 for (id, bp) in enumerate(blueprints[:3]):
-	print()
-	print("BP", id, "******")
-	print()
+	if verbose:
+		print()
+		print("BP", id, "******")
+		print()
 
-	max_geodes.append(max_geo(32, bp, do_recurse=True, verbose=True).geode)
+	# With some (older, worse) hueristics recursive constraint was faster, but not now
+	max_geodes.append(max_geo(32, bp, do_recurse=False, verbose=verbose).geode)
 	
-print("Part 2:", functools.reduce(operator.mul, max_geodes))
+print("Part 2:", reduce(operator.mul, max_geodes))
 
-t2 = time()
-print("Total time:", t2-t1)
+t2 = time.time()
+if verbose:
+	print("Total time:", t2-t1)
