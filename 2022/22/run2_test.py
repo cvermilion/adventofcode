@@ -1,22 +1,10 @@
-from parse import parse
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 
-input_test = """        ...#
-        .#..
-        #...
-        ....
-...#.......#
-........#...
-..#....#....
-..........#.
-        ...#....
-        .....#..
-        .#......
-        ......#.
-
-10R5L5R10L4R5L5"""
-
-input = input_test
-N = 4
+test()
+input = get_input()
+N = 4 
 W = 4*N
 H = 3*N
 

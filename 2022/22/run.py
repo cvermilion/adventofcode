@@ -1,31 +1,19 @@
-from parse import parse
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 
-input_test = """        ...#
-        .#..
-        #...
-        ....
-...#.......#
-........#...
-..#....#....
-..........#.
-        ...#....
-        .....#..
-        .#......
-        ......#.
-
-10R5L5R10L4R5L5"""
-
-test = False
-if test:
-    input = input_test
-    N = 4 
-    W = 4*N
-    H = 3*N
+test_mode = "--test" in sys.argv
+if test_mode:
+	test()
+	N = 4 
+	W = 4*N
+	H = 3*N
 else:
-    input = open("input.py").read()
-    N = 50
-    W = 3*N
-    H = 4*N
+	N = 50
+	W = 3*N
+	H = 4*N
+
+input = get_input()
 
 grid_text, steps_text = input.split("\n\n")
 grid = list(grid_text.splitlines())

@@ -1,6 +1,8 @@
-from parse import parse
+import os, sys
+sys.path.append(os.path.realpath(".."))
+from util import *
 
-input = open("input.py").read()
+input = get_input()
 N = 50
 W = 3*N
 H = 4*N
