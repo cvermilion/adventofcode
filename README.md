@@ -1,4 +1,11 @@
-# Advent of Code 2017-2022
+# Advent of Code 2017-2023
+
+2023: Still on Pythonista. With some manual file copying into the on-phone
+`site-packages`, I managed to get
+[`aocd`](https://github.com/wimglenn/advent-of-code-data) working as a
+dependency, which simplifies the data grabbing. To run these scripts with your
+own data, just follow the README instructions there for putting `AOC_SESSION` in
+your environment.
 
 2020-2022: Reverted to Pythonista on my phone; spare time while I watch the kids
 is the only time I have for this, so phone-coding works and it's a fun
