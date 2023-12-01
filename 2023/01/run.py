@@ -13,8 +13,8 @@ def is_dig(c):
 resultA = sum(thread(
 	input.splitlines(),
 	partial(filter, is_dig),
-	partial(lmap, int),
-	lambda dd: 10*dd[0]+dd[-1]
+	list,
+	lambda dd: int(dd[0] + dd[-1])
 ))
 print("Part a:", resultA)
 aocd.submit(resultA, part="a", day=1)
@@ -32,27 +32,24 @@ zoneight234
 """
 #input = input_test.strip()
 
-digit_strings = {
-	"one": 1,
-	"two": 2,
-	"three": 3,
-	"four": 4,
-	"five": 5,
-	"six": 6,
-	"seven": 7,
-	"eight": 8,
-	"nine": 9
+digit_words = {
+	"one": "1",
+	"two": "2",
+	"three": "3",
+	"four": "4",
+	"five": "5",
+	"six": "6",
+	"seven": "7",
+	"eight": "8",
+	"nine": "9"
 }
-p = re.compile("(?=(\d|" + "|".join(digit_strings.keys()) + "))")
+p = re.compile("(?=(\d|" + "|".join(digit_words.keys()) + "))")
 
-def parse_int(s):
-	return digit_strings.get(s) if s in digit_strings else int(s)
-	
 resultB = sum(thread(
 	input.splitlines(),
 	p.findall,
-	partial(lmap, parse_int),
-	lambda dd: 10*dd[0]+dd[-1]
+	partial(lmap, lambda s: digit_words.get(s, s)),
+	lambda dd: int(dd[0] + dd[-1])
 ))
 
 print("Part b:", resultB)
