@@ -32,6 +32,9 @@ zoneight234
 """
 #input = input_test.strip()
 
+def backward(s):
+	return "".join(reversed(s))
+
 digit_words = {
 	"one": "1",
 	"two": "2",
@@ -43,11 +46,15 @@ digit_words = {
 	"eight": "8",
 	"nine": "9"
 }
-p = re.compile("(?=(\d|" + "|".join(digit_words.keys()) + "))")
+# first match
+pf = re.compile("\d|" + "|".join(digit_words.keys()))
+# first match on a reversed string
+pr = re.compile("\d|" + "|".join(map(backward, digit_words.keys())))
 
 resultB = sum(thread(
 	input.splitlines(),
-	p.findall,
+	# [first_match, last_match]
+	lambda s: [pf.search(s).group(0), backward(pr.search(backward(s)).group(0))],
 	partial(lmap, lambda s: digit_words.get(s, s)),
 	lambda dd: int(dd[0] + dd[-1])
 ))
