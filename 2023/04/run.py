@@ -13,7 +13,7 @@ resultA = sum(pipe(
 	lambda sides: set.intersection(*sides),
 	len,
 	lambda n: 2**(n-1) if n else 0
-	))
+))
 
 print("Part A:", resultA)
 #aocd.submit(resultA, part="a", day=4)
@@ -26,7 +26,7 @@ matches = lpipe(
 	lambda sides: lpipe(sides, str.strip, [str.split, " "], partial(filter, len), partial(map, int), set),
 	lambda sides: set.intersection(*sides),
 	len
-	)
+ )
 
 copies = [1]*len(matches)
 for i in range(len(copies)):
@@ -35,4 +35,4 @@ for i in range(len(copies)):
 
 resultB = sum(copies)
 print("Part B:", resultB)
-aocd.submit(resultB, part="b", day=4)
+#aocd.submit(resultB, part="b", day=4)
