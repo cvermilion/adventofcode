@@ -1,16 +1,14 @@
-import os, sys
-sys.path.append(os.path.realpath(".."))
-from util import *
+from me import *
 
 #input = input_test
-input = get_data(1)
+input = get_data_2023(1)
 
 # Part a
 
 def is_dig(c):
 	return c in '0123456789'
 
-resultA = sum(thread(
+resultA = sum(pipe(
 	input.splitlines(),
 	partial(filter, is_dig),
 	list,
@@ -51,7 +49,7 @@ pf = re.compile("\d|" + "|".join(digit_words.keys()))
 # first match on a reversed string
 pr = re.compile("\d|" + "|".join(map(backward, digit_words.keys())))
 
-resultB = sum(thread(
+resultB = sum(pipe(
 	input.splitlines(),
 	# [first_match, last_match]
 	lambda s: [pf.search(s).group(0), backward(pr.search(backward(s)).group(0))],
