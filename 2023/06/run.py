@@ -30,7 +30,7 @@ def range(td):
 		rounded_high -= 1
 	return rounded_high - rounded_low + 1
 
-resultA = reduce(mul, map(range, tds))
+resultA = product(map(range, tds))
 print("Part A:", resultA)
 #aocd.submit(resultA, part="a", day=6)
 

@@ -2,6 +2,9 @@ import aocd, re
 from functools import partial, reduce
 from operator import add, mul
 
+import math
+product = math.prod
+
 from parse import parse
 
 from .token import *
