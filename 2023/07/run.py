@@ -15,7 +15,7 @@ def rank(c):
 # Returns a list of rank cardinalities in descending order
 # Eg, a full house is [3, 2]
 def score(hand):
-	return pipeline(hand) | set | [hand.count] | sorted	| reversed | list | DONE
+	return pipeline(hand) | set | [hand.count] | sorted | reversed | list | DONE
 
 resultA = (pipeline(input.splitlines())
 	| [str.strip]
