@@ -27,7 +27,14 @@ def nsols(segments, runs):
 	if not runs:
 		return 1 if min_broken == 0 else 0
 	lens = lmap(len, segments)
-	if sum(lens) + (len(segments)-1) < sum(runs)+(len(runs)-1) or max(lens) < max(runs):
+	max_unbroken = sum(lens) - min_broken + (len(segments)-1)
+	if max_unbroken < len(runs) - 1:
+		# not enough potentially unbroken springs for the gaps between runs
+		return 0
+	# All springs in segments could be broken, but if there are more runs than
+	# segments we need to leave some unbroken to make gaps.
+	max_broken = sum(lens) - max(0, len(runs) - len(segments))
+	if max_broken < sum(runs) or max(lens) < max(runs):
 		# No solutions: not enough possibly broken springs, or no segment long enough for longest run
 		return 0
 	# Consume known runs on either end
