@@ -10,8 +10,6 @@ def rep_grid(g):
 
 # Part A
 
-patterns = [lmap(list, block.splitlines()) for block in input.split("\n\n")]
-
 def sum_diff_ref(g, i):
 	"""Sum the differences across a reflection over column i"""
 	size = min(i, len(g[0])-i)
@@ -24,8 +22,12 @@ def col_sum(g, ndiff):
 def do_sums(ndiff):
 	"""ndiff=0 for a match, ndiff=1 for off-by-one"""
 	return (
-		100*sum(col_sum(list(zip(*g)), ndiff) for g in patterns)
-		+ sum(col_sum(g, ndiff) for g in patterns)
+		pipeline(input.split("\n\n"))
+		| [str.splitlines]
+		| [[list]]
+		| [lambda g: 100*col_sum(list(zip(*g)), ndiff) + col_sum(g, ndiff)]
+		| sum
+		| DONE
 	)
 
 resultA = do_sums(0)
