@@ -1,7 +1,4 @@
 from me import *
-from sickos.yes import *
-from collections import namedtuple
-from queue import PriorityQueue
 
 input = get_data_2023(23)
 
