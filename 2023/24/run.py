@@ -67,6 +67,35 @@ print("Part A:", resultA)
 
 # Part B
 
+# Define the thrown rock as having position s + u t (s and u 3-vectors) and each hailstone as having position
+# r_i + v_i * t_i at collision (each collision time is distinct).
+#
+# Thus there are six "global" unknowns (velocity and initial position of the rock) and one "local" unknown per
+# hailstone (t_i, the time of collision). Setting positions equal yields three constraints per line, so three
+# hailstone intersections are sufficient to solve the system.
+# 
+# Doing this directly is quite tedious, though, and we can find some simpler constraints by observing that two
+# equal vectors have null cross product:
+#
+#   (s + u t_i) = (r_i + v_i t_i)
+#   (s - r_i) = - (u - v_i) t_i
+#   (s - r_i) x (u - v_i) = 0
+#   (s x u) - (r_i x u) - (s x v_i) + (r_i x v_i) = 0
+#
+# The (s x u) term is the same for any hailstone, so we can eliminate it by subracting the equations for two different
+# hailstones:
+#
+#   - (r_i x u) - (s x v_i) + (r_i x v_i) + (r_j x u) + (s x v_j) - (r_j x v_j) = 0
+#
+# Note that this holds for any pair of hailstones. We've eliminated the irrelavent t_i, so we're left with the six
+# real unknowns, and two pairs of {i,j} will suffice. For simplicity, we take {0,1} and {0,2}, and shift coordinates
+# so that r_0 = 0.
+#
+# For faster input on my phone, I labeled the vectors:
+#
+# (a, b, c, d, e, f) = (v_0, v_1, v_2, r_0, r_1, r_2)
+#
+
 V3 = namedtuple("V3", ["x", "y", "z"])
 
 # v0
@@ -105,7 +134,6 @@ sy += lines[0].y0
 sz += lines[0].z0
 
 resultB = sx+sy+sz
-
 
 print("Part B:", resultB)
 #aocd.submit(resultB, part="b", day=24)
