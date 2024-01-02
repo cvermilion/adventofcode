@@ -1,6 +1,8 @@
 import aocd, re
-from functools import partial, reduce
+from collections import namedtuple
+from functools import cache, partial, reduce
 from operator import add, mul
+from queue import PriorityQueue, SimpleQueue
 
 import math
 product = math.prod
