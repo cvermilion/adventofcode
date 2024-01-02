@@ -1,5 +1,4 @@
 from me import *
-from sickos.yes import *
 from collections import namedtuple
 from queue import SimpleQueue
 
@@ -44,15 +43,18 @@ def parse_line(l):
 
 lines = lmap(parse_line, input.splitlines())
 gates = dict((g.name, g) for g in lines)
-gates["output"] = Output("output", Low, [])
-gates["rx"] = Output("rx", Low, [])
 
+outputs = []
 for (name, g) in gates.items():
 	for o in g.outputs:
-		if o in gates:
+		if o not in gates:
+			outputs.append(o)
+		else:
 			match gates[o]:
 				case And(state=d):
 					d[name] = Low
+for o in outputs:
+	gates[o] = Output(o, Low, [])
 
 def do_pulse(pulses):
 	src, dst, val = pulses.get()
@@ -94,54 +96,40 @@ print("Part A:", resultA)
 
 lines = lmap(parse_line, input.splitlines())
 gates = dict((g.name, g) for g in lines)
-gates["output"] = Output("output", Low, [])
-gates["rx"] = Output("rx", Low, [])
 
+outputs = []
 for (name, g) in gates.items():
 	for o in g.outputs:
-		if o in gates:
+		if o not in gates:
+			outputs.append(o)
+		else:
 			match gates[o]:
 				case And(state=d):
 					d[name] = Low
+for o in outputs:
+	gates[o] = Output(o, Low, [])
 
-def do_pulse(pulses):
-	src, dst, val = pulses.get()
-	match gates[dst]:
-		case Broadcaster() as b:
-			b.state[0] = val
-			for o in b.outputs:
-				pulses.put((dst, o, val))
-		case FF() as f:
-			if val == Low:
-				f.state[0], out = (Off, Low) if f.state[0] == On else (On, High)
-				for o in f.outputs:
-					pulses.put((dst, o, out))
-		case And() as a:
-			a.state[src] = val
-			out = Low if all(a.state.values()) else High
-			for o in a.outputs:
-				pulses.put((dst, o, out))
-	return src, dst, val
-	
 # each of these joins 12 bits (flip flops)
 # the bits increment up to some N and then reset; the accumulator pulses low at N steps
 accumulators = ["nx", "dj", "bz", "zp"]
 invs = ["bh", "dl", "vd", "ns"]
+# map of accumulator name to set of flip-flop names that are its inputs
 bits = dict((a, set(g for g in list(gates[a].state.keys()) + gates[a].outputs if g not in invs)) for a in accumulators)
 periods = {}
 
 # vd, ns, bh, dl -> zh
 # Find the period for each of these counters
 pulses = SimpleQueue()
-for i in range(10000):
+i = 0
+while len(periods) < 4:
 	pulses.put(("x", "broadcaster", Low))
 	while not pulses.empty():
-		src, dst, val = do_pulse(pulses)
+		val = do_pulse(pulses)
 	for acc, bb in bits.items():
+		# period == number of steps to get all inputs back to 0
 		if all(gates[b].state[0] == Off for b in bb):
 			periods[acc] = i+1
-	if len(periods) == 4:
-		break
+	i += 1
 
 resultB = product(periods.values())
 
