@@ -1,4 +1,5 @@
 from me import *
+from sickos.yes import *
 import re
 
 input = get_data_2024(3)
@@ -7,10 +8,12 @@ input = get_data_2024(3)
 
 # Part 1
 
-pat = re.compile("mul\(\d+,\d+\)")
-instrs = [list(parse("mul({:d},{:d})", s)) for s in pat.findall(input)]
-
-result1 = sum(a*b for a,b in instrs)
+pat = re.compile(r"mul\(\d+,\d+\)")
+result1 = (
+	pipeline(pat.findall(input))
+	| [partial(parse, "mul({:d},{:d})")]
+	| [product] | sum | DONE
+)
 
 print("Part 1:", result1)
 #aocd.submit(result1, part="a", day=3)
@@ -19,7 +22,7 @@ print("Part 1:", result1)
 
 #input = open("input_test2.txt").read()
 
-pat = re.compile("mul\(\d+,\d+\)|do\(\)|don't\(\)")
+pat = re.compile(r"mul\(\d+,\d+\)|do\(\)|don't\(\)")
 
 active = True
 tot = 0
