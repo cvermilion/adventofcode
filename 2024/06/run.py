@@ -69,22 +69,8 @@ class Grid(object):
 
 grid = lmap(list, input.strip().split("\n"))
 
-def rep_grid(g):
-    return "\n".join("".join(row) for row in g)
-
-def padded(N, c, grid):
-	gx = len(grid[0])
-	return (
-		[[c] * (gx+2*N)] * N
-		+ [[c]*N + row + [c]*N for row in grid]
-		+ [[c] * (gx+2*N)] * N
-	)
-
 Ni = len(grid[0])
 Nj = len(grid)
-#grid = padded(1, "0",  grid)
-
-print(rep_grid(grid))
 
 g = Grid(grid)
 
@@ -102,10 +88,7 @@ for c in g:
 
 visited = set([start])
 cur, dir = start, start_dir
-print("start",start,dir)
-step=0
 while True:
-	step += 1
 	closest = None
 	for obs in obstacles:
 		path = obs-cur
@@ -120,7 +103,6 @@ while True:
 		visited.update(set(cur + Path(closest.dir, m) for m in range(1, closest.mag)))
 		cur = next
 		dir = {N:E,E:S,S:W,W:N}[dir]
-		#print("stopping at", cur, dir)
 	else:
 		# hit a boundary
 		if dir == E:
@@ -156,10 +138,8 @@ def has_loop(obstacle):
 		if closest:
 			# go one short of the obstacle and turn
 			next = cur + Path(closest.dir, closest.mag-1)
-			#visited.update(set(cur + Path(closest.dir, m) for m in range(1, closest.mag)))
 			cur = next
 			dir = {N:E,E:S,S:W,W:N}[dir]
-			#print("stopping at", cur, dir)
 			if (cur, dir) in visited:
 				return True
 			visited.add((cur, dir))
