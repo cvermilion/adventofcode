@@ -4,36 +4,11 @@ input = get_data_2024(6)
 
 #input = input_test
 
-class Point(tuple):
-	def __new__(cls,x,y):
-		self = super().__new__(cls,[x,y])
-		return self
-
-p = Point(1,2)
-
-PointT = namedtuple("Point", "x y")
-VecT = namedtuple("Vec", "x y")
-
-class Vec(VecT):
-	def ortho(self):
-		return self.x == 0 or self.y == 0
-	
-	def mag(self):
-		return abs(self.x) + abs(self.y)
-	
-	def __add__(self, v2):
-		return Vec(self.x+v2.x, self.y+v2.y)
-		
-	def __div__(self, v2):
-		# only implemented for normal vectors
-		if not self.ortho() or not v2.ortho():
-			return None
-		return None
-
-N,E,S,W = Vec(0,-1), Vec(1,0), Vec(0,1), Vec(-1,0)
+N,E,S,W = (0,-1), (1,0), (0,1), (-1,0)
 
 Path = namedtuple("Path", "dir mag")
-	
+
+PointT = namedtuple("Point", "x y")
 class Point(PointT):
 	def __sub__(self, p2):
 		# None if not in the same row or column
