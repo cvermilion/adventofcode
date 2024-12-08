@@ -2,7 +2,7 @@ from me import *
 
 input = get_data_2024(6)
 
-#input = input_test
+input = input_test
 
 N,E,S,W = (0,-1), (1,0), (0,1), (-1,0)
 
@@ -25,7 +25,7 @@ class Point(PointT):
 		return None
 	
 	def __add__(self, path):
-		return Point(self.x + path.dir.x*path.mag, self.y + path.dir.y*path.mag)
+		return Point(self.x + path.dir[0]*path.mag, self.y + path.dir[1]*path.mag)
 
 Cell = namedtuple("Cell", "point value")
 
