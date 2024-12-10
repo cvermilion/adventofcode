@@ -2,7 +2,7 @@ from me import *
 
 input = get_data_2024(7)
 
-#input = input_test
+input = input_test
 
 def parse_line(l):
 	total, rest = l.strip().split(": ")
