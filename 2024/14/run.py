@@ -1,8 +1,12 @@
 from me import *
 
+# real data
 input = get_data_2024(14)
+Lx,Ly = (101,103)
 
+# test data
 #input = input_test
+#Lx,Ly = (11,7)
 
 def parse_line(s):
 	px,py,vx,vy = parse("p={:d},{:d} v={:d},{:d}", s)
@@ -10,15 +14,12 @@ def parse_line(s):
 
 robots = lmap(parse_line, input.strip().splitlines())
 
-# test data
-Lx,Ly = (11,7)
-# real data
-Lx,Ly = (101,103)
+def move(steps):
+	return [((px+steps*vx)%Lx, (py+steps*vy)%Ly) for ((px,py),(vx,vy)) in robots]
 
 # Part 1
 
-steps = 100
-moved = [((px+steps*vx)%Lx, (py+steps*vy)%Ly) for ((px,py),(vx,vy)) in robots]
+moved = move(100)
 
 midx = int((Lx-1)/2)
 midy = int((Ly-1)/2)
@@ -34,40 +35,7 @@ print("Part 1:", result1)
 
 # Part 2
 
-def move(steps):
-	return [((px+steps*vx)%Lx, (py+steps*vy)%Ly) for ((px,py),(vx,vy)) in robots]
-
-def has_neighbor(p, pts):
-	px,py = p
-	return ((px-1,py-1) in pts or
-					(px,py-1) in pts or
-					(px+1,py-1) in pts or
-					(px-1,py) in pts or
-					(px+1,py) in pts or
-					(px-1,py+1) in pts or
-					(px,py+1) in pts or
-					(px+1,py+1) in pts)
-
-def connected(pts):
-	return all(has_neighbor(p, pts) for p in pts)
-	
-def balanced(moved):
-	weights = [0]*Ly
-	for (px,py) in moved:
-		weights[py] += px - int((Lx-1)/2)
-	return all(w == 0 for w in weights)
-
-def mirror(p):
-	px,py = p
-	return (Lx-1-px, py)
-
-def symmetric(moved):
-	quadA = count(filter(lambda p: p[0] < midx and p[1] < midy, moved))
-	quadB = count(filter(lambda p: p[0] > midx and p[1] < midy, moved))
-	quadC = count(filter(lambda p: p[0] < midx and p[1] > midy, moved))
-	quadD = count(filter(lambda p: p[0] > midx and p[1] > midy, moved))
-	return quadA == quadB and quadC == quadD
-
+# crude measure of how spread out the points are (lazy stddev, it was good enough)
 def spread(pts):
 	x = sum(px for (px,py) in pts)/len(pts)
 	y = sum(py for (px,py) in pts)/len(pts)
@@ -78,6 +46,7 @@ def print_robots(robots):
 	print("\n".join("".join(row) for row in grid))
 
 # Find the step where the stars are most bunched together and guess this is the picture
+# Note that the pattern repeats after Lx*Ly steps.
 spreads = [spread(move(s)) for s in range(Lx*Ly)]
 result2 = spreads.index(min(spreads))
 print("Part 2:", result2)
