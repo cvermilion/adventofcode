@@ -5,36 +5,10 @@ input = get_data_2024(15)
 input = input_test
 #input = open("input_test1.txt").read().strip()
 
-Cell = namedtuple("Cell", "point value")
+Vec = namedtuple("Vec", "x y")
 
 PointT = namedtuple("Point", "x y")
-VecT = namedtuple("Vec", "x y")
-
-class Vec(VecT):
-	def mag(self):
-		return abs(self.x) + abs(self.y)
-	
-	def unit(self):
-		# the shortest vector v such that self==a*v for positive integer a
-		a = gcd(self.x, self.y)
-		return Vec(int(self.x/a), int(self.y/a))
-	
-	def __add__(self, v2):
-		return Vec(self.x+v2.x, self.y+v2.y)
-		
-	def __mul__(self, a):
-		return Vec(a*self.x, a*self.y)
-
 class Point(PointT):
-	def __sub__(self, x):
-		if isinstance(x, Point):
-			p2 = x
-			return Vec(self.x-p2.x, self.y-p2.y)
-		else:
-			# assume Vec
-			v = x
-			return Point(self.x-v.x, self.y-v.y)
-	
 	def __add__(self, vec):
 		return Point(self.x + vec.x, self.y +vec.y)
 
@@ -56,8 +30,8 @@ class Grid(object):
 		return "\n".join("".join(str(c.value) for c in row) for row in self.cells)
 		
 	def step(self, c, dir):
-		x,y = c.point.x, c.point.y
-		return self.cells[y+dir.y][x+dir.x]
+		x,y = c.point + dir
+		return self.cells[y][x]
 
 grid_data, moves_data = input.split("\n\n")
 grid_data = lmap(list, grid_data.splitlines())
@@ -81,13 +55,17 @@ def do_push(g, c, dir):
 	c.value = "."
 	nxt = g.step(c, dir)
 	if nxt.value == ".":
+		# move into empty space
 		nxt.value = "@"
 		return nxt
 	else:
+		# push a line of boxes; only need to put robot in for
+		# first box, add a box to the end
 		first = nxt
-		while nxt.value == "O":
-			nxt = g.step(nxt, dir)
-		nxt.value = "O"
+		end = nxt
+		while end.value == "O":
+			end = g.step(end, dir)
+		end.value = "O"
 		first.value = "@"
 		return first
 
@@ -123,10 +101,7 @@ def can_push(g, c, dir):
 		return False
 	if dir in [E,W]:
 		return can_push(g, nxt, dir)
-	if nxt.value == "[":
-		other = g.step(nxt, E)
-	else:
-		other = g.step(nxt, W)
+	other = g.step(nxt, {"[":E,"]":W}[nxt.value])
 	return can_push(g, nxt, dir) and can_push(g, other, dir)
 
 def do_push(g, c, dir):
