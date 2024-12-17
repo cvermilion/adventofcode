@@ -3,7 +3,7 @@ from queue import PriorityQueue
 
 input = get_data_2024(16)
 
-#input = input_test
+input = input_test
 #input = open("input_test1.txt").read().strip()
 
 PointT = namedtuple("Point", "x y")
@@ -44,9 +44,6 @@ class Point(PointT):
 	def __add__(self, vec):
 		return Point(self.x + vec.x, self.y +vec.y)
 	
-	def dist(self, p):
-		return (p-self).mag()
-
 class Cell(object):
 	def __init__(self, point, value):
 		self.point = point
@@ -106,29 +103,22 @@ def best_cost(c1, c2, dir):
 			turns = 1
 	return 1000*turns + moves
 
-State = namedtuple("State", ["best", "score", "pos", "dir", "visited", "path"])
-
+State = namedtuple("State", ["best", "score", "pos", "dir"])
 best = best_cost(start, end, start_dir)
+start_state = State(best, 0, start, start_dir)
 
-start_state = State(best, 0, start, start_dir, {start}, [start])
+# map of (pos,dir) => score
 best_to = {}
-
 best_sol = None
-best_path = None
 
 to_check = PriorityQueue()
 to_check.put(start_state)
 
-i = 0
-while not to_check.empty() :#and i< 10:
-	i += 1
+while not to_check.empty():
 	cur = to_check.get()
-	#print(cur)
-	#print()
 	if cur.pos == end:
 		if not best_sol or (cur.score < best_sol):
 			best_sol = cur.score
-			best_path = cur.path
 		continue
 	if best_sol and cur.best >= best_sol:
 		# no better solutions possible
@@ -137,7 +127,6 @@ while not to_check.empty() :#and i< 10:
 	if best_so_far and cur.score >= best_so_far:
 		continue
 	best_to[(cur.pos, cur.dir)] = cur.score
-		
 
 	# compute next steps
 	# two possibilities: move or turn
@@ -146,15 +135,14 @@ while not to_check.empty() :#and i< 10:
 	nxt_pos = grid.step(cur.pos, cur.dir)
 	if nxt_pos.value != "#":
 		new_best = cur.score+1+best_cost(nxt_pos, end, cur.dir)
-		to_check.put(State(new_best, cur.score+1, nxt_pos, cur.dir, cur.visited.union({nxt_pos}), cur.path[:]+[nxt_pos]))
+		to_check.put(State(new_best, cur.score+1, nxt_pos, cur.dir))
 	
 	# turn
 	left = {N:W,W:S,S:E,E:N}[cur.dir]
 	right = {N:E,E:S,S:W,W:N}[cur.dir]
 	for new_dir in [left,right]:
 		new_best = cur.score+1000+best_cost(cur.pos, end, new_dir)
-		to_check.put(State(new_best, cur.score+1000, cur.pos, new_dir, cur.visited, cur.path))
-	
+		to_check.put(State(new_best, cur.score+1000, cur.pos, new_dir))
 
 result1 = best_sol
 
@@ -163,39 +151,19 @@ print("Part 1:", result1)
 
 # Part 2
 
+State = namedtuple("State", ["best", "score", "pos", "dir", "visited"])
+start_state = State(best, 0, start, start_dir, {start})
+
 best_to = {}
 to_check = PriorityQueue()
 to_check.put(start_state)
 
-all_best_paths = set()
-
-i = 0
-while not to_check.empty() :#and i< 10:
-	i += 1
+while not to_check.empty():
 	cur = to_check.get()
-	#print(cur)
-	#print()
 	if cur.best > best_sol:
 		# no more best sols possible
 		break
-	
-	"""
-	best_so_far = best_to.get((cur.pos, cur.dir))
-	if best_so_far and cur.score > best_so_far[0]:
-		continue
-	elif not best_so_far or cur.score < best_so_far[0]:
-		best_to[(cur.pos, cur.dir)] = (cur.score, cur.visited)
-	else:
-		best_to[(cur.pos, cur.dir][1].update(cur.visited)
-		continue
-	"""
-	
 	if cur.pos == end:
-		if cur.score == best_sol:
-			print("found a path")
-			all_best_paths.update(cur.visited)
-		else:
-			print("finished but took", cur.score)
 		continue
 	
 	# compute next steps
@@ -206,14 +174,14 @@ while not to_check.empty() :#and i< 10:
 	nxt_pos = grid.step(cur.pos, cur.dir)
 	if nxt_pos.value != "#":
 		new_best = cur.score+1+best_cost(nxt_pos, end, cur.dir)
-		next_states.append(State(new_best, cur.score+1, nxt_pos, cur.dir, cur.visited.union({nxt_pos}), cur.path[:]+[nxt_pos]))
+		next_states.append(State(new_best, cur.score+1, nxt_pos, cur.dir, cur.visited.union({nxt_pos})))
 	
 	# turn
 	left = {N:W,W:S,S:E,E:N}[cur.dir]
 	right = {N:E,E:S,S:W,W:N}[cur.dir]
 	for new_dir in [left,right]:
 		new_best = cur.score+1000+best_cost(cur.pos, end, new_dir)
-		next_states.append(State(new_best, cur.score+1000, cur.pos, new_dir, cur.visited, cur.path))
+		next_states.append(State(new_best, cur.score+1000, cur.pos, new_dir, cur.visited))
 	
 	for st in next_states:
 		key = (st.pos, st.dir)
@@ -228,14 +196,7 @@ while not to_check.empty() :#and i< 10:
 			elif st.score == score:
 				all_visited.update(st.visited)
 
-for c in grid:
-	if c in all_best_paths:
-		c.value = "O"
-#print(grid)
-#print()
-
 all_best = set.union(*[best_to.get((end,d), (0, set()))[1] for d in [N,S,E,W]])
-
 result2 = len(all_best)
 
 print("Part 2:", result2)
