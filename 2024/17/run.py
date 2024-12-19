@@ -63,46 +63,37 @@ print("Part 1:", result1)
 
 # Part 2
 
+# example:
 #instrs = [0,3,5,4,3,0]
 
-def run(a):
-	cpu = CPU(a,0,0)
-	return cpu.run(instrs)
-
-def try_quine(a):
-	cpu = CPU(a,0,0)
-	while cpu.pc < len(instrs):
-		cpu.step(instrs)
-		if len(cpu.buf) > len(instrs):
-			return False
-		if cpu.buf != instrs[:len(cpu.buf)]:
-			return False
-	return cpu.buf == instrs
-
-def try_quine2(a, i):
-	next_out = 7 & (3 ^ (a&7) ^ (a >> ((a&7)^7)))
-	if next_out != instrs[i]:
-		return False
-	return try_quine2(a>>3, i+1)
-
-def makeA(aa):
-	return sum(c<<(3*(18-i)) for (i,c) in enumerate(aa))
-	
-# we know because the program has a single while
-# loop and shifts A 3 bits each time that A
-# has len(instrs)*3 bits (highest 2 might be zero)
-# pad with 3 extra chunks to make the shift test easier; highest nonzero bit of A is in i=3
+# Each loop iteration prints one number, which is only
+# a function of the current lowest 3-bit chunk of A, plus
+# a shift which might depend on the lowest four chunks of A.
+# Thus the final iteration only depends on the highest chunk,
+# the previous iteration on the two highest chunks, etc.,
+# and we can start from the most significant chunk and
+# iterate over possible solutions -- for each test value
+# we check that outputs corresponding to the filled-in
+# chunks of A are correct, since the last N outputs are
+# fixed by the N most-significant chunks of A.
+#
+# Iterating over possible solutions starting from the
+# most-significant chunk means the first solution found
+# is the smallest.
+#
+# aa is a list of 3-bit chunks; A is aa[3]..aa[18]. We pad with 
+# extra zeroes to make the shift logic easier.
 aa = [0]*19
 i = 3
 while i < 19:
-	# find the smallest solution by just iterating
-	# over possible 3-bit chunks of A
-	# starting at MSB
+	# i is an index to the current chunk we're testing possible
+	# values for: the more-significant chunks are assumed correct,
+	# but if we can't find a solution we backtrack.
 	possible = False
-	print("i=",i,aa[:i+1])
 	for n in range(aa[i], 8):
-		# check each value of this chunk
+		# check each possible value of this chunk
 		shift = (n^7)
+		# the output chunk, assuming this chunk and all higher ones
 		out = 7&(
 			(3 ^ n) ^
 			(
@@ -115,29 +106,25 @@ while i < 19:
 		)
 		if instrs[15-(i-3)] == out:
 			possible = True
-			print("possible val",n)
 			aa[i] = n
 			break
 	if possible:
 		# continue with next chunk
 		i += 1
 	else:
-		# no solutions given earlier chunks
-		print("oops, go back", aa[:i+1])
+		# no solutions given earlier chunks, so we backtrack
 		aa[i] = 0
 		i -= 1
 		while aa[i] == 7 and i >= 0:
 			aa[i] = 0
 			i -= 1
-			
 		if i < 3:
 			# no solutions at all!
 			assert(False)
 		# loop at i again but start with the next value
 		aa[i] += 1
 
-
-print("aa chunks", aa)
+# convert the chunks back into a single integer
 result2 = sum(c<<(3*(18-i)) for (i,c) in enumerate(aa))
 
 print("Part 2:", result2)
