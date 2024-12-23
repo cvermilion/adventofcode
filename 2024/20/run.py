@@ -1,10 +1,11 @@
 from me import *
 from queue import PriorityQueue
-import json
 
 input = get_data_2024(20)
+min_improvement = 100
 
-#input = input_test
+input = input_test
+min_improvement = 1
 
 PointT = namedtuple("Point", "x y")
 VecT = namedtuple("Vec", "x y")
@@ -19,18 +20,6 @@ class Vec(VecT):
 	def __mul__(self, a):
 		return Vec(a*self.x, a*self.y)
 	
-	def decompose(self):
-		parts = []
-		if self.x > 0:
-			parts.append((E, self.x))
-		elif self.x < 0:
-			parts.append((W, -self.x))
-		if self.y > 0:
-			parts.append((S, self.y))
-		elif self.y < 0:
-			parts.append((N, -self.y))
-		return parts
-
 class Point(PointT):
 	def __sub__(self, x):
 		if isinstance(x, Point):
@@ -75,10 +64,6 @@ class Grid(object):
 				return c
 		return None
 		
-	def step(self, c, dir):
-		x,y = c.point.x, c.point.y
-		return self.cells[y+dir.y][x+dir.x]
-	
 	def nabes(self, cell):
 		# unchecked, dont fall off the map
 		i,j = cell.point
@@ -96,11 +81,11 @@ State = namedtuple("State", ["best", "score", "pos"])
 
 grid_data = lmap(list, input.splitlines())
 grid = Grid(grid_data)
-#print(grid)
-#print()
+
 start, end = grid.find("S"), grid.find("E")
 best = best_cost(start, end)
 
+# Mark the outer walls a separate value, we don't cheat through here
 for c in grid:
 	x,y = c.point
 	if x in (0, len(grid.cells[0])-1) or y in (0, len(grid.cells)-1):
@@ -139,196 +124,81 @@ def find_sol():
 				
 	return best_sol, best_to
 
-State2 = namedtuple("State2", ["best", "score", "pos", "cheats"])
-
-def find_sols(best_to_no_cheating, min_improvement):
-	start_state = State2(best, 0, start, tuple())
-	
-	# map of {pos => {cheats => score}}
-	best_to = {}
-	max_best = best_to_no_cheating[end]-min_improvement
-	print("max best:", max_best)
-	
-	to_check = PriorityQueue()
-	to_check.put(start_state)
-	
-	while not to_check.empty():
-		cur = to_check.get()
-		curpt = cur.pos.point
-		
-		if cur.best > max_best:
-			# no better solutions possible
-			break
-		
-		if cur.cheats and cur.pos in best_to_no_cheating and cur.score > best_to_no_cheating[cur.pos] - min_improvement:
-			#print("eorked")
-			continue
-		
-		# update "best score to this point"
-		if curpt not in best_to:
-			best_to[curpt] = {cur.cheats: cur.score}
-		else:
-			best_to_here = best_to[curpt]
-			s = best_to_here.get(cur.cheats)
-			if s and s <= cur.score:
-				# found a better way here, continue
-				continue
-			else:
-				best_to_here[cur.cheats] = cur.score
-		
-		if cur.pos == end:
-			continue
-	
-		# compute next steps
-		
-		for nabe in grid.nabes(cur.pos):
-			if nabe.value == "X":
-				# ignore outer walls
-				continue
-			nxt_score = cur.score+1
-			best_rem = best_cost(nabe, end)+nxt_score
-			nxt_pt = nabe.point
-			if nabe.value != "#":
-				cheats = cur.cheats if cur.cheats != (curpt,) else (curpt, nabe.point)
-				to_check.put(State2(best_rem, nxt_score, nabe, cheats))
-			elif len(cur.cheats) == 0:
-				to_check.put(State2(best_rem, nxt_score, nabe, (nxt_pt,)))
-				
-	return best_to[end.point]
-
-# Part 1
-
-
 best_no_cheating, best_to_no_cheating = find_sol()
-print("best is", best_no_cheating)
-"""
-with_cheating = find_sols(best_to_no_cheating, 100)
-#print(with_cheating)
 
-result1 = len(with_cheating)
-print("Part 1:", result1)
-#aocd.submit(result1, part="a", day=20)
-"""
-
-# Part 2
-
-# Better alg: enumerate all start and end points of a cheat run, then:
+# Enumerate all start and end points of a cheat run, then:
 # find cost(start, start_cheat) for all sc
 # find cost(end_cheat, end) for all ec
 # for all (sc, ec) pairs check if cost(sc,ec) < 20 and if total cost is low enough
 
 def find_cost_to_starts(max_cost):
-	# only sets c.cost for cells as close as max_cost
 	State = namedtuple("State", ["score", "pos"])
 	start_state = State(0, start)
 	
-	# map of pos => score
-	best_to = {}
-	
 	to_check = PriorityQueue()
 	to_check.put(start_state)
-	
 	while not to_check.empty():
 		cur = to_check.get()
-		curpt = cur.pos.point
 		
 		if cur.score > max_cost:
 			break
 		
-		best_so_far = best_to.get(curpt)
-		if best_so_far is not None and cur.score >= best_so_far:
+		if cur.pos.start_cost is not None and cur.score >= cur.pos.start_cost:
 			continue
-		best_to[curpt] = cur.score
-		
 		cur.pos.start_cost = cur.score
 	
-		# compute next steps
-		
 		for nabe in grid.nabes(cur.pos):
 			if nabe.value not in "#X":
 				to_check.put(State(cur.score+1, nabe))
 
 def find_cost_to_ends(max_cost):
-	# only sets c.cost for cells as close as max_cost
 	State = namedtuple("State", ["score", "pos"])
 	start_state = State(0, end)
 	
-	# map of pos => score
-	best_to = {}
-	
 	to_check = PriorityQueue()
 	to_check.put(start_state)
-	
 	while not to_check.empty():
 		cur = to_check.get()
-		curpt = cur.pos.point
 		
-		best_so_far = best_to.get(curpt)
-		if best_so_far is not None and cur.score >= best_so_far:
+		if cur.score > max_cost:
+			break
+		
+		if cur.pos.end_cost is not None and cur.score >= cur.pos.end_cost:
 			continue
-		best_to[curpt] = cur.score
-		
 		cur.pos.end_cost = cur.score
 	
-		# compute next steps
-		
 		for nabe in grid.nabes(cur.pos):
 			if nabe.value not in "#X":
 				to_check.put(State(cur.score+1, nabe))
 
-def find_cheat_cost(start, end, max_cost):
-	# return None if no path or longer than max
-	State = namedtuple("State", ["score", "pos"])
-	start_state = State(0, start)
-	
-	# map of pos => score
-	best_to = {}
-	
-	to_check = PriorityQueue()
-	to_check.put(start_state)
-	
-	while not to_check.empty():
-		cur = to_check.get()
-		curpt = cur.pos.point
-		
-		if cur.score > max_cost:
-			return None
-		
-		best_so_far = best_to.get(curpt)
-		if best_so_far is not None and cur.score >= best_so_far:
-			continue
-		best_to[curpt] = cur.score
-	
-		# compute next steps
-		
-		for nabe in grid.nabes(cur.pos):
-			if nabe.value == "#":
-				to_check.put(State(cur.score+1, nabe))
-			elif nabe == end:
-				return cur.score+1
-					
 find_cost_to_starts(best_no_cheating)
 find_cost_to_ends(best_no_cheating)
 
 scs = [c for c in grid if c.value in ".S" and c.start_cost is not None]
 ecs = [c for c in grid if c.value in ".E" and c.end_cost is not None]
 
-max_cost = best_no_cheating - 100
-tot = 0
-for sc in scs:
-	for ec in ecs:
-		if ec == sc:
-			continue
-		non_cheat = sc.start_cost + ec.end_cost
-		if non_cheat <= max_cost:
-			cheat = (ec.point-sc.point).mag()
-			#cheat = find_cheat_cost(sc, ec, max_cost-non_cheat)
-			# 2 for part 1
-			if cheat is not None and cheat <= 100 and non_cheat + cheat <= max_cost:
-				#print(str(sc), str(ec))
-				tot += 1
+def num_cheats(max_cheat, min_improvement):
+	max_cost = best_no_cheating - min_improvement
+	tot = 0
+	for sc in scs:
+		for ec in ecs:
+			if ec == sc:
+				continue
+			non_cheat = sc.start_cost + ec.end_cost
+			if non_cheat <= max_cost:
+				cheat = (ec.point-sc.point).mag()
+				if cheat is not None and cheat <= max_cheat and non_cheat + cheat <= max_cost:
+					tot += 1
+	return tot
 
-result2 = tot
+# Part 1
+
+result1 = num_cheats(2, min_improvement)
+
+print("Part 1:", result1)
+#aocd.submit(result1, part="a", day=20)
+
+result2 = num_cheats(20, min_improvement)
 
 print("Part 2:", result2) 
 #aocd.submit(result2, part="b", day=20)
