@@ -57,7 +57,7 @@ def decode_seq(n):
 
 def price_seqs(s0, steps):
 	# do the first four steps by hand to make the
-	# loop a little easierl
+	# loop a little easier
 	s1 = step(s0)
 	s2 = step(s1)
 	s3 = step(s2)
@@ -72,12 +72,11 @@ def price_seqs(s0, steps):
 	for i in range(steps-4):
 		s = step(s)
 		pnew = s%10
-		delta = pnew - p
-		deltas.push(delta)
+		deltas.push(pnew-p)
+		p = pnew
 		sn = seq_num(deltas)
 		if sn not in seqs:
 			seqs[sn] = pnew
-		p = pnew
 		
 	return seqs
 
