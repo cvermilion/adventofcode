@@ -33,11 +33,7 @@ print("Part 1:", result1)
 def num_matches(pat):
 	if not pat:
 		return 1
-	tot = 0
-	for t in towels:
-		if pat.startswith(t):
-			tot += num_matches(pat[len(t):])
-	return tot
+	return sum(num_matches(pat[len(t):]) for t in towels if pat.startswith(t))
 
 result2 = sum(num_matches(p) for p in patterns)
 
