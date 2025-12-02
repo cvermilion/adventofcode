@@ -1,6 +1,6 @@
-# Advent of Code 2017-2024
+# Advent of Code 2017-2025
 
-2024: Continuing with Pythonista.
+2024-2025: Continuing with Pythonista.
 
 2023: Still on Pythonista. With some manual file copying into the on-phone
 `site-packages`, I managed to get
