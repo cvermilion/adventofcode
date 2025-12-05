@@ -2,9 +2,11 @@ from me import *
 
 DAY=4
 
+import time
+start = time.time()
 input = get_data_2025(DAY)
 
-input = input_test
+#input = input_test
 
 PointT = namedtuple("Point", "x y")
 class Point(PointT):
@@ -81,3 +83,5 @@ while to_remove:
 result2 = removed
 print("Part 2:", result2)
 #aocd.submit(result2, part="b", day=DAY)
+end = time.time()
+print(end - start)
